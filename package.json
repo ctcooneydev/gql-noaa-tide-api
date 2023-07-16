@@ -1,0 +1,27 @@
+{
+  "name": "gql-noaa-tide-api",
+  "version": "1.0.0",
+  "description": "A simple NOAA tide prediction API",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "gql-noaa-tide-api"
+  },
+  "author": "Chris Cooney",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@apollo/server": "^4.7.5",
+    "axios": "^1.4.0",
+    "colors": "^1.4.0",
+    "dotenv": "^16.3.1",
+    "geolib": "^3.3.4",
+    "graphql": "^16.7.1",
+    "moment": "^2.29.4",
+    "nodemon": "^3.0.1"
+  }
+}
