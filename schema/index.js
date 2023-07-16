@@ -18,12 +18,12 @@ export const typeDefs = `#graphql
   }
 
   type Query {
-    getNearbyStations(latitude: Float!, longitude: Float!, maxDistanceFromOrigin: Float): [Station]
     getStationsByName(name: String!): [Station]
-    getTidePredictionsByStationId (stationId: String!, config: ConfigInput): [Tide]
+    getNearbyStations(latitude: Float!, longitude: Float!, maxDistanceFromOrigin: Float, config: ConfigInput): [Station]
+    getTidePredictionsByStationId (stationId: String!, beginDate: String, endDate: String, config: ConfigInput): [Tide]
   }
 
-   enum Unit {
+  enum Unit {
     metric
     english
   }

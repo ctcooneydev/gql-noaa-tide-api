@@ -5,11 +5,20 @@ import moment from 'moment';
 
 export const resolvers = {
     Query: {
-        getNearbyStations: async (_, { latitude, longitude, maxDistanceFromOrigin }, context, info) => {
+        getNearbyStations: async (obj, args, context, info) => {
+            const { latitude, longitude, maxDistanceFromOrigin, config } = args;
 
-            // if maxDistanceFromOrigin is not passed use 5 miles in meters (8048)
-            maxDistanceFromOrigin =
-                maxDistanceFromOrigin === undefined ? 8048 : maxDistanceFromOrigin;
+            // maxDistanceFromOrigin can be in kilometers or miles, if no config parameter is provided, default assumes kilometers
+            // convert maxDistanceFromOrigin to meters depending on the config units
+            // If not passed, default to 32.2 Km/~20 miles
+            let radius = maxDistanceFromOrigin ? maxDistanceFromOrigin : 32.2 // 32.2 Km/~20 miles
+
+            //convert maxDistanceFromOrigin to meters depending on the config units.
+            if (config && config.units && config.units === 'english') {
+                radius = (radius * 5280) / 3.28;
+            } else {
+                radius *= 1000;
+            }
 
             try {
                 const response = await axios.get(process.env.NOAA_STATIONS_URL);
@@ -20,10 +29,17 @@ export const resolvers = {
                         const stationLat = parseFloat(station.lat);
                         const stationLng = parseFloat(station.lng);
                         const distance = geolib.getDistance({ latitude, longitude }, { lat: stationLat, lng: stationLng });
-                        station.distance = distance / 1000; // miles
-                        return distance <= maxDistanceFromOrigin;
+
+                        //set display distance in Km or miles depending on config. Default to Km
+                        if (config && config.units && config.units === 'english') {
+                            station.distance = distance / 1600;
+                        } else {
+                            station.distance = distance / 1000;
+                        }
+                        return distance <= radius;
                     });
-                    //sort by distance from position
+
+                    //sort by distance from passed latitude and longitude.
                     nearbyStations.sort((a, b) => a.distance - b.distance);
                     return nearbyStations;
                 }
@@ -52,14 +68,27 @@ export const resolvers = {
                 throw new Error(`Failed to fetch NOAA tide stations: ${error.message}`);
             }
         },
-        getTidePredictionsByStationId: async (_, { stationId, config }, context, info) => {
+        getTidePredictionsByStationId: async (obj, args, context, info) => {
             try {
-                const beginDate = moment().format('L');
-                const endDate = moment().add(20, 'days').format('L');
+                const { stationId, beginDate, endDate, config } = args;
 
-                const TIDE_URL = `${process.env.NOAA_TIDE_BASE_URL + process.env.NOAA_TIDE_UNITS + config.units + process.env.NOAA_TIDE_STATION + stationId + process.env.NOAA_TIDE_BEGIN_DATE + beginDate + process.env.NOAA_TIDE_END_DATE + endDate}`
+                //Build the request url
+                let url = process.env.NOAA_TIDE_BASE_URL;
 
-                const response = await axios.get(TIDE_URL);
+                // Add other fields to request url. If not passed, use defaults
+                url += `&station=${stationId}`;
+
+                //if begin and end date are not specified, will get 10 days of tides starting from today
+                url += '&begin_date=';
+                url += beginDate ? beginDate : moment().format('L');
+                url += '&end_date=';
+                url += endDate ? endDate : moment().add(10, 'days').format('L');
+
+                // defaults to metric values
+                url += '&units=';
+                url += (config && config.units) ? config.units : 'metric';
+
+                const response = await axios.get(url);
                 if (response.status === 200) {
                     const { data } = response;
                     return data["predictions"] || null;
@@ -71,7 +100,6 @@ export const resolvers = {
             catch (error) {
                 throw new Error(`Failed to fetch NOAA tide stations: ${error.message}`);
             }
-        },
-
+        }
     },
 };

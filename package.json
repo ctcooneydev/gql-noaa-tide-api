@@ -4,7 +4,7 @@
   "description": "A simple NOAA tide prediction API",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js",
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -16,6 +16,7 @@
   "type": "module",
   "dependencies": {
     "@apollo/server": "^4.7.5",
+    "apollo-server-express": "^3.12.0",
     "axios": "^1.4.0",
     "colors": "^1.4.0",
     "dotenv": "^16.3.1",
