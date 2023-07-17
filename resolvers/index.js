@@ -15,8 +15,10 @@ export const resolvers = {
 
             //convert maxDistanceFromOrigin to meters depending on the config units.
             if (config && config.units && config.units === 'english') {
+                //convert miles to meters
                 radius = (radius * 5280) / 3.28;
             } else {
+                //convert kilometers to meters
                 radius *= 1000;
             }
 
@@ -32,9 +34,9 @@ export const resolvers = {
 
                         //set display distance in Km or miles depending on config. Default to Km
                         if (config && config.units && config.units === 'english') {
-                            station.distance = distance / 1600;
+                            station.distance = Math.ceil(distance / 1600);
                         } else {
-                            station.distance = distance / 1000;
+                            station.distance = Math.ceil(distance / 1000);
                         }
                         return distance <= radius;
                     });
